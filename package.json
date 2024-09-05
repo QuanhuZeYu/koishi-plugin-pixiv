@@ -9,13 +9,17 @@
     "dist"
   ],
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "build": "node build.js"
+  },
   "keywords": [
     "chatbot",
     "koishi",
     "plugin"
   ],
-  "devDependencies": {},
+  "devDependencies": {
+    "puppeteer": "^23.3.0"
+  },
   "peerDependencies": {
     "koishi": "^4.17.11"
   }
