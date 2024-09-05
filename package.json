@@ -1,0 +1,22 @@
+{
+  "name": "@quanhuzeyu/koishi-plugin-pixiv",
+  "description": "与pixiv相关的操作插件，无需获取cookies等复杂操作，获取账号下的每日推荐",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "license": "MIT",
+  "scripts": {},
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin"
+  ],
+  "devDependencies": {},
+  "peerDependencies": {
+    "koishi": "^4.17.11"
+  }
+}
