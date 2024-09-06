@@ -61,12 +61,25 @@ async function getRandomTJPic() {
             return []; // 如果没有找到则返回空数组
         }
 
-        // 查找符合条件的块中的所有 <img> 元素
-        const imgElements = Array.from(tuijianSections[0].querySelectorAll('img'));
+        // 查找符合条件的块中的所有 <li> 元素
+        const listItems = Array.from(tuijianSections[0].querySelectorAll('li'));
 
-        // 返回这些图片元素的 src 属性
-        const srcs = imgElements.map(img => img.src)
-        return srcs
+        // 定义一个空数组来存储找到的图片 URL
+        const imgSrcs = [];
+
+        // 遍历每个 <li> 元素
+        listItems.forEach(li => {
+            // 从 <li> 开始向下查找第一个 <img> 元素
+            const img = li.querySelector('img');
+
+            // 如果找到了 <img> 元素，则将其 src 属性添加到结果数组中
+            if (img) {
+                imgSrcs.push(img.src);
+            }
+        });
+
+        // 返回所有找到的图片 URL
+        return imgSrcs;
     });
     // 确保找到了图片
     if (!imgSelector || imgSelector.length === 0) {
