@@ -5,7 +5,6 @@ import type * as cjl  from "@cordisjs/logger"
 import path from "path"
 import { Config } from ".."
 import p__ from 'koishi-plugin-puppeteer'
-import { } from "koishi-plugin-puppeteer"
 import * as p_ from 'puppeteer-core'
 
 let ctx: Context
@@ -17,6 +16,8 @@ let puppeteer:p__
 let browserExecutePath: string
 
 let controledPage:p_.Page
+let pixivNetHeader:Record<string, string>
+let iPximgNetHeader:Record<string, string>
 
 // region 预初始化资源
 /**
@@ -109,6 +110,22 @@ function getCurPage() {
     return controledPage
 }
 
+function setPixivNetHeader(h:Record<string, string>) {
+    pixivNetHeader = h
+}
+
+function getPixivNetHeader() {
+    return pixivNetHeader
+}
+
+function setIpximgNetHeader(h:Record<string, string>) {
+    iPximgNetHeader = h
+}
+
+function getIpximgNetHeader() {
+    return iPximgNetHeader
+}
+
 
 const baseData = {
     inintAllBaseData,
@@ -120,6 +137,8 @@ const baseData = {
     initPuppeteer,
     setCTX,
     setCurPage,
+    setPixivNetHeader,
+    setIpximgNetHeader,
 
     getLogger,
     getKoishiBaseDir,
@@ -128,6 +147,8 @@ const baseData = {
     getPuppeteer,
     getCTX,
     getCurPage,
+    getPixivNetHeader,
+    getIpximgNetHeader,
 }
 
 export default baseData

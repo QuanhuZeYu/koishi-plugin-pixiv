@@ -2,6 +2,8 @@ import { Context, Schema } from "koishi";
 import Event from "./Event/_index";
 import { } from 'koishi-plugin-puppeteer'
 
+import commands from "./command/_index";
+
 export const name = "pixiv";
 export const usage = "\
 第一次使用本插件时请在puppeteer服务中设置args: `--user-data-dir=/path/to/custom-profile-dir` 否则无法记录登录信息\n\n\
@@ -26,5 +28,7 @@ export function apply(ctx: Context) {
 
 	ctx.command('随机涩图 [message:text]')
 		.usage('从p站的推荐作品中随机获取一张图片')
-		
+		.action(async(av,ms)=>{
+			await commands.randomTJPic(av,ms)
+		})
 }
