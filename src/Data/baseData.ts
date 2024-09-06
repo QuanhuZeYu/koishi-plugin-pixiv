@@ -1,31 +1,44 @@
 // 全局资源
 
-import type { Context } from "koishi"
-import type Puppeteer from "@seidko/koishi-plugin-puppeteer"
-import type * as _pOrigan from "puppeteer"
+import type { Context, Logger } from "koishi"
+import type * as cjl  from "@cordisjs/logger"
 import path from "path"
-import { name } from ".."
+import { Config } from ".."
+import p__ from 'koishi-plugin-puppeteer'
+import { } from "koishi-plugin-puppeteer"
+import * as p_ from 'puppeteer-core'
 
-let logger:any
+let ctx: Context
+let logger:cjl.LoggerService
 let koishiBaseDir:string
 let myPluginDataDir:string
-let puppeteer:Puppeteer
-let globalBrowser:_pOrigan.Browser
+let myBrowserUserDataDir:string
+let puppeteer:p__
+let browserExecutePath: string
+
+let controledPage:p_.Page
 
 // region 预初始化资源
+/**
+ * 预初始化 logger KoishiData目录 插件数据目录 浏览器UserDataDir  puppeteer
+ * @param ctx 
+ */
 function inintAllBaseData(ctx:Context) {  // [[4]]
-    setLogger(ctx.logger)
+    setCTX(ctx)  // 初始化一次ctx
+    setLogger(ctx.logger)  // 初始化logger
     logger.info("正在初始化资源...")
-    setKoishiBaseDir(ctx.baseDir)  // 获取koishi的Data目录
+    initKoishiBaseDir(ctx.baseDir)  // 获取koishi的Data目录
     logger.info(`获取Koishi插件的Data目录: ${koishiBaseDir}`)
     initMyPluginDataDir()  // 初始化插件的Data目录
     logger.info(`获取插件的Data目录: ${myPluginDataDir}`)
-    setPuppeteer(ctx)  // 获取插件服务Puppeteer
-    
+    // initMyBrowserUserDataDir()  // 初始化插件的chromeUserData目录 -- 弃用
+    // logger.info(`获取插件的chromeUserData目录: ${myBrowserUserDataDir}`)
+    initPuppeteer(ctx)  // 初始化Puppeteer
     logger.info("资源初始化完毕")
+    initBrowserExecutePath(ctx.config)
 }
 
-function setLogger(_:any){
+function setLogger(_:cjl.LoggerService){
     logger = _
 }
 
@@ -37,7 +50,7 @@ function getKoishiBaseDir() {
     return koishiBaseDir
 }
 
-function setKoishiBaseDir(dir:string) {
+function initKoishiBaseDir(dir:string) {
     koishiBaseDir = dir
 }
 
@@ -47,40 +60,74 @@ function getMyPluginDataDir() {
 
 function initMyPluginDataDir() {
     const baseDir = getKoishiBaseDir()
-    myPluginDataDir = path.resolve(baseDir, "@QuanhuZeYu/pixiv")
+    myPluginDataDir = path.resolve(baseDir, "data/@QuanhuZeYu/pixiv")
+}
+
+function initMyBrowserUserDataDir() {
+    const userDataDir = path.resolve(myPluginDataDir, "chromeData")
+    myBrowserUserDataDir = userDataDir
+}
+
+function getMyUserDataDir() {
+    return myBrowserUserDataDir
 }
 
 function getPuppeteer() {
     return puppeteer
 }
 
-function setPuppeteer(ctx: Context) {
-    puppeteer = ctx.puppeteer as any
+function initPuppeteer(ctx:Context) {
+    puppeteer = ctx.puppeteer
 }
 
-// region 初始化资源
-function setGlobalBrowser(browser: _pOrigan.Browser) {
-    globalBrowser = browser
+function initBrowserExecutePath(path:string) {
+    browserExecutePath = path
 }
 
-function getGlobalBrowser() {
-    return globalBrowser
+function getBrowserExecutePath() {
+    return browserExecutePath
+}
+
+
+// region 循环获取资源
+function setCTX(ctx_: Context) {
+    ctx = ctx_
+}
+
+function getCTX() {
+    return ctx
+}
+/**
+ * 操作页面时，当函数结束记得调用此函数，将页面存入全局变量中
+ * @param p 
+ */
+function setCurPage(p:p_.Page) {
+    controledPage = p
+}
+
+function getCurPage() {
+    return controledPage
 }
 
 
 const baseData = {
     inintAllBaseData,
-    getLogger,
-    setLogger,
-    getKoishiBaseDir,
-    setKoishiBaseDir,
-    getMyPluginDataDir,
-    initMyPluginDataDir,
-    getPuppeteer,
-    setPuppeteer,
 
-    setGlobalBrowser,
-    getGlobalBrowser
+    setLogger,
+    initKoishiBaseDir,
+    initMyPluginDataDir,
+    initMyBrowserUserDataDir,
+    initPuppeteer,
+    setCTX,
+    setCurPage,
+
+    getLogger,
+    getKoishiBaseDir,
+    getMyPluginDataDir,
+    getMyUserDataDir,
+    getPuppeteer,
+    getCTX,
+    getCurPage,
 }
 
 export default baseData

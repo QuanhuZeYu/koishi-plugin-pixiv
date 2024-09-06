@@ -11,8 +11,8 @@ const upperUpperDir = path.resolve(currentDir, '../../');
 try {
     console.log(`Navigating to directory: ${upperUpperDir}`);
     process.chdir(upperUpperDir);
-    console.log(`Running "npm run build pixiv" in ${upperUpperDir}...`);
-    execSync('npm run build pixiv', { stdio: 'inherit' });
+    console.log(`Running "npm run clean pixiv" in ${upperUpperDir}...`);
+    execSync('npm run clean pixiv', { stdio: 'inherit' });
 } catch (error) {
     console.error(`Error running npm build: ${error}`);
     process.exit(1);

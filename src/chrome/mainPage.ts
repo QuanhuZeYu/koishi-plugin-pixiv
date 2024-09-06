@@ -1,31 +1,31 @@
-import type Puppeteer from "@seidko/koishi-plugin-puppeteer"
 import Data from "../Data/_index"
+import type { Context } from "koishi";
+import baseData from "../Data/baseData";
 
-async function pupterBrowserPreInit() {  // [[4]]
+/**
+ * 运行页面初始化
+ * 如果config指示未登录则不进行初始化
+ */
+async function pupterBrowserInit(ctx:Context) {  // [[4]]
+    const logger = Data.baseData.getLogger()
+    if(ctx.config.ensureLogin === false) {
+        logger.warn("当前状态为未登录，将不会进行页面初始化")
+        return
+    }
     const puppeteer = Data.baseData.getPuppeteer()
-    moidfiyPuppeteerConfig(puppeteer)  // [[5]]
+    let myPage = await puppeteer.browser.newPage()
+    await myPage.goto("https://www.pixiv.net/")
+    baseData.setCurPage(myPage)
 }
 
-async function pupterBrowserInit() {
-    const browser_i = await Data.baseData.getPuppeteer().browser as any
-    Data.baseData.setGlobalBrowser(browser_i)
-    // test
-    const logger = Data.baseData.getLogger()
-    const p = Data.baseData.getPuppeteer()
-    const browser = Data.baseData.getGlobalBrowser()
-    const testPage = await browser.newPage()
-    const res = await testPage.goto("https://pixiv.net/")
-}
-
-async function moidfiyPuppeteerConfig(p:Puppeteer) {  // [[5]]
-    const logger = Data.baseData.getLogger()
-    const browser = p.browser
-    let config = await p.config
-    logger.info("puppeteer config:",config)
+async function getRandowPic() {
+    const page = baseData.getCurPage()
+    // 查找显示为 '推荐作品' 的块
+    const elementHandles = await page.evaluate("//*[contains(text(), '推荐作品')]");
 }
 
 const browser = {
-    pupterBrowserPreInit,pupterBrowserInit
+    pupterBrowserInit,
 }
 
 export default browser
