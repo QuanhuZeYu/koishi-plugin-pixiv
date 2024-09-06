@@ -8,7 +8,7 @@ async function randomTJPic(av:Argv,ms:string) {
     logger.info("正在随机获取图片")
     try {
         const picBuffer = await chrome.browser.getRandomTJPic()
-        ss.send(h.image('image/png', picBuffer))
+        ss.send(h.image(picBuffer, 'image/png'))
     } catch (e) {
         logger.warn(`获取失败，失败信息: ${e}`)
         ss.send("获取失败，请联系管理员查看控制台")

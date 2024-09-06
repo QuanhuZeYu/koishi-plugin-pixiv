@@ -1,4 +1,5 @@
 import axios from "axios";
+import fs from 'fs'
 
 import Data from "../Data/_index";
 import type { Context } from "koishi";
@@ -129,18 +130,21 @@ async function getRandomTJPic() {
 
             if (bigPicURL) {
                 logger.info(`大图 URL 获取成功: ${bigPicURL}`);
-
+				const cookies_ = await page.cookies()
                 // Step 4: 下载图片
                 try {
                     const bigPicBuffer = await axios.get(bigPicURL, {
                         responseType: "arraybuffer",
                         headers: {
-							...Data.baseData.getPixivNetHeader(),
-							Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+							...Data.baseData.getIpximgNetHeader(),
+							accept: "*/*",
+							referer: 'https://www.pixiv.net/',
+							origin: 'https://www.pixiv.net',
 						},
                     });
                     logger.info("图片下载成功");
-                    return bigPicBuffer;
+					// fs.writeFileSync('test.jpg', Buffer.from(bigPicBuffer.data))
+                    return Buffer.from(bigPicBuffer.data)
                 } catch (axiosError) {
                     logger.error(`下载图片时发生错误: ${axiosError}`);
                     throw axiosError;
