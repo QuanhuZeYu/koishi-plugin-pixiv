@@ -7,7 +7,8 @@ import commands from "./command/_index";
 export const name = "pixiv";
 export const usage = "\
 第一次使用本插件时请在puppeteer服务中设置args: `--user-data-dir=/path/to/custom-profile-dir` 否则无法记录登录信息\n\n\
-且强烈推荐关闭无头模式，因为插件可能会打开很多页面，如果你开了无头模式可能会不知不觉吃掉很多内存和性能，关掉无头随时查看浏览器"
+且强烈推荐关闭无头模式，因为插件可能会打开很多页面，如果你开了无头模式可能会不知不觉吃掉很多内存和性能，关掉无头随时查看浏览器\n\n\
+使用 `随机涩图` 即可随机获取一张p站推荐作品中的图片~~~"
 export const inject = {
 	required: ["puppeteer"],
 };
@@ -25,6 +26,7 @@ export const Config: Schema<Config> = Schema.object({
 export function apply(ctx: Context) {
 	Event.preInit(ctx)
 	Event.init(ctx)
+	// Event.cycle(ctx)
 
 	ctx.command('随机涩图 [message:text]')
 		.usage('从p站的推荐作品中随机获取一张图片')
