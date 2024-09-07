@@ -60,8 +60,6 @@ async function getRandomTJPic() {
     const logger = Data.baseData.getLogger();
     const page = baseData.getCurPage();
 
-    logger.info("正在随机获取图片");
-
     try {
         // Step 1: 查找显示为 '推荐作品' 的块
         logger.info("正在查找推荐作品");
@@ -114,7 +112,7 @@ async function getRandomTJPic() {
         logger.info(`随机选择的第${randomIndex}张图片: ${imgUrl}`);
 
         // Step 2: 查找并点击图片
-        const imageHandle = await page.$(`img[src="${imgUrl}"]`) || await page.$(`a[href="${imgUrl}"]`);
+        const imageHandle = await page.$(`img[src="${imgUrl}"]`)
         if (imageHandle) {
             logger.info("准备点击图片元素");
             await clickElementSafe(page,imageHandle)
@@ -220,3 +218,20 @@ async function clickElementSafe(page:p_.Page,e:p_.ElementHandle) {
     await e.focus()
     await e.click()
 }
+
+async function onCtxFetch(page: p_.Page, url: string) {
+    const picUrl = url;
+    
+    // 2. 使用 fetch 在页面上下文中获取图像数据
+    const imageBuffer = await page.evaluate(async (picUrl) => {
+      const response = await fetch(picUrl);
+      if (!response.ok) {
+        throw new Error('无法请求图像');
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      return Array.from(new Uint8Array(arrayBuffer)); // 转换成可以序列化的数组
+    }, picUrl); // 将 picUrl 作为参数传入
+    
+    // 3. 将 Uint8Array 转换为 Buffer
+    return Buffer.from(imageBuffer);
+  }
