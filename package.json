@@ -1,9 +1,14 @@
 {
   "name": "@quanhuzeyu/koishi-plugin-pixiv",
-  "description": "与pixiv相关的操作插件，无需获取cookies等复杂操作，获取账号下的每日推荐",
-  "version": "0.1.0",
+  "description": "指令:随机涩图，无需获取cookies等复杂操作，获取账号下的每日推荐",
+  "version": "0.1.3",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
+  "homepage": "https://github.com/QuanhuZeYu/koishi-plugin-pixiv.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QuanhuZeYu/koishi-plugin-pixiv.git"
+  },
   "files": [
     "lib",
     "dist"
@@ -19,7 +24,9 @@
   "keywords": [
     "chatbot",
     "koishi",
-    "plugin"
+    "plugin",
+    "pixiv",
+    "setu"
   ],
   "devDependencies": {
     "koishi-plugin-puppeteer": "^3.9.0",
