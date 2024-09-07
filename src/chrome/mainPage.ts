@@ -1,5 +1,6 @@
 import axios from "axios";
 import fs from 'fs'
+import type * as p_ from 'puppeteer-core'
 
 import Data from "../Data/_index";
 import type { Context } from "koishi";
@@ -17,7 +18,18 @@ async function pupterBrowserInit(ctx: Context) {
 		return;
 	}
 	const puppeteer = Data.baseData.getPuppeteer();
-	let myPage = await puppeteer.browser.newPage();
+    const pages = await puppeteer.browser.pages();
+    let myPage:p_.Page
+    for(const page of pages) {
+        if (page.url() === 'about:blank' || page.url().includes('pixiv.net')) {
+            myPage = page as any
+            break
+        }
+    }
+    if(!myPage) {
+        myPage = await puppeteer.browser.newPage() as any
+    }
+    await myPage.bringToFront()  // 设置为活动页
 	await myPage.goto("https://www.pixiv.net/");
 	// 启用请求拦截功能
 	await myPage.setRequestInterception(true);
@@ -28,9 +40,6 @@ async function pupterBrowserInit(ctx: Context) {
 			header = {
 				...header,
 				...request.headers(),
-				accept: "*/*",
-				referer: 'https://www.pixiv.net/',
-                origin: 'https://www.pixiv.net'
 			};
 			Data.baseData.setPixivNetHeader(header);
 		} else if (domain === "i.pximg.net") {
@@ -38,9 +47,6 @@ async function pupterBrowserInit(ctx: Context) {
 			header = {
 				...header,
 				...request.headers(),
-				accept: "*/*",
-				referer: 'https://www.pixiv.net/',
-                origin: 'https://www.pixiv.net'
 			};
 			Data.baseData.setIpximgNetHeader(header);
 		}
@@ -59,7 +65,7 @@ async function getRandomTJPic() {
     try {
         // Step 1: 查找显示为 '推荐作品' 的块
         logger.info("正在查找推荐作品");
-
+        await page.bringToFront()  // 设置为活动页
         const imgSelector = await page.evaluate(() => {
             const sections = Array.from(document.querySelectorAll("section"));
             const tuijianSections = sections.filter((section) =>
@@ -166,6 +172,7 @@ async function getRandomTJPic() {
         logger.info("正在返回主页");
         await page.goto("https://www.pixiv.net/");
         logger.info("已返回主页");
+        Data.baseData.setCurPage(page)
     }
 }
 
