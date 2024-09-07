@@ -98,6 +98,7 @@ async function getRandomTJPic() {
         const imageHandle = await page.$(`img[src="${imgUrl}"]`);
         if (imageHandle) {
             logger.info("准备点击图片元素");
+            await imageHandle.focus()  // 点击前先聚焦
             await imageHandle.click();
 
             // Step 3: 等待图片请求响应
