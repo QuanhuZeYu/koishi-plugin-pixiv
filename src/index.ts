@@ -3,6 +3,8 @@ import Event from "./Event/_index";
 import { } from 'koishi-plugin-puppeteer'
 
 import commands from "./command/_index";
+import Data from "./Data/_index";
+import { started } from "./Event/preInit";
 
 export const name = "pixiv";
 export const usage = "\
@@ -26,7 +28,7 @@ export const Config: Schema<Config> = Schema.object({
 export function apply(ctx: Context) {
 	Event.preInit(ctx)
 	Event.init(ctx)
-	// Event.cycle(ctx)
+	Event.cycle(ctx)
 
 	ctx.command('随机涩图 [message:text]')
 		.usage('从p站的推荐作品中随机获取一张图片')
