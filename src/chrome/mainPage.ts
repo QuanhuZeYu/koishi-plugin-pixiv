@@ -108,7 +108,7 @@ async function getRandomTJPic() {
             await imageHandle.click();
 
             // Step 3: 等待图片请求响应
-            const urlPrefix = "https://i.pximg.net/c/";
+            const urlPrefix = "https://www.pixiv.net/ajax/user/";
             logger.info(`等待请求响应，匹配 URL 前缀：${urlPrefix}`);
             await page.waitForResponse((response) => {
                 const urlMatches = response.url().startsWith(urlPrefix);
