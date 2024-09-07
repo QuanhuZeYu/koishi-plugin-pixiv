@@ -1,7 +1,7 @@
 import { Context } from "koishi";
 import Data from "../Data/_index";
 
-let started: boolean = false
+export let started: boolean = false
 async function preInit(ctx:Context) {  // [[2]]
     if(started) return
     Data.baseData.inintAllBaseData(ctx)  // 初始化全部基础资源 [[3]]
