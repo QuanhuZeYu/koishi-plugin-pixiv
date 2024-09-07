@@ -66,60 +66,66 @@ async function getRandomTJPic() {
         // Step 1: 查找显示为 '推荐作品' 的块
         logger.info("正在查找推荐作品");
         await page.bringToFront()  // 设置为活动页
+        // 浏览器 JS 代码
+        // 查找推荐块逻辑+推荐块中放作品的图片元素 -> 返回图片列表url
         const imgSelector = await page.evaluate(() => {
+            // 寻找推荐作品块
             const sections = Array.from(document.querySelectorAll("section"));
             const tuijianSections = sections.filter((section) =>
                 section.textContent.includes("推荐作品")
             );
-
-            if (tuijianSections.length === 0) {
+            // 合法性检查
+            if (tuijianSections?.length < 1) {
                 return [];
             }
-
+            // 寻找所有推荐块下所有li元素
             const listItems = Array.from(tuijianSections[0].querySelectorAll("li"));
             const imgSrcs = [];
-
+            // 从每个li下寻找找到的第一个img
             listItems.forEach((li) => {
                 const img = li.querySelector("img");
                 if (img) {
                     imgSrcs.push(img.src);
                 }
             });
+            // 合法性检查
+            if(imgSrcs.length < 3) {
+                logger.info(`img 块总数小于3，可能不在<img>中，尝试<a>`)
+            }
+            // 寻找每个li下第一个a元素
+            listItems.forEach((li) => {
+                const a = li.querySelector("a");
+                if (a) {
+                    imgSrcs.push(a.href);
+                }
+            });
 
             return imgSrcs;
         });
-
+        // 合法性检查
         if (!imgSelector || imgSelector.length === 0) {
             logger.warn('未找到 "推荐作品" 块或其中的图片！');
             await page.goto("https://www.pixiv.net/");
             return null;
         }
-
+        // 随机选择
         const randomIndex = getRandomInt(0, imgSelector.length - 1);
-        const imgUrl = imgSelector[randomIndex];
-
+        const imgUrl = imgSelector[randomIndex];  // 选择到的图片链接
         logger.info(`随机选择的第${randomIndex}张图片: ${imgUrl}`);
 
         // Step 2: 查找并点击图片
-        const imageHandle = await page.$(`img[src="${imgUrl}"]`);
+        const imageHandle = await page.$(`img[src="${imgUrl}"]`) || await page.$(`a[href="${imgUrl}"]`);
         if (imageHandle) {
             logger.info("准备点击图片元素");
-            await imageHandle.focus()  // 点击前先聚焦
-            await imageHandle.click();
+            await clickElementSafe(page,imageHandle)
 
             // Step 3: 等待图片请求响应
             const urlPrefix = "https://www.pixiv.net/ajax/user/";
-            logger.info(`等待请求响应，匹配 URL 前缀：${urlPrefix}`);
-            await page.waitForResponse((response) => {
-                const urlMatches = response.url().startsWith(urlPrefix);
-                const statusMatches = response.status() === 200;
-                // logger.info(`检测到响应: ${response.url()}, 状态码: ${response.status()}`);
-                return urlMatches && statusMatches;
-            });
-
+            await waitUrlPrefix(page, urlPrefix)
             logger.info("请求响应成功，开始查找大图 URL");
-
+            // 获取原始图像 url 浏览器 JS 代码
             const bigPicURL = await page.evaluate(() => {
+                // 查找 main 块 -> 寻找 main 下的 img 元素
                 const main = document.querySelector("main");
                 if (!main) {
                     console.warn("未找到 <main> 元素");
@@ -137,25 +143,9 @@ async function getRandomTJPic() {
 
             if (bigPicURL) {
                 logger.info(`大图 URL 获取成功: ${bigPicURL}`);
-				const cookies_ = await page.cookies()
                 // Step 4: 下载图片
-                try {
-                    const bigPicBuffer = await axios.get(bigPicURL, {
-                        responseType: "arraybuffer",
-                        headers: {
-							...Data.baseData.getIpximgNetHeader(),
-							accept: "*/*",
-							referer: 'https://www.pixiv.net/',
-							origin: 'https://www.pixiv.net',
-						},
-                    });
-                    logger.info("图片下载成功");
-					// fs.writeFileSync('test.jpg', Buffer.from(bigPicBuffer.data))
-                    return Buffer.from(bigPicBuffer.data)
-                } catch (axiosError) {
-                    logger.error(`下载图片时发生错误: ${axiosError}`);
-                    throw axiosError;
-                }
+                const picBuffer = await downloadPixivImg(bigPicURL)
+                return picBuffer
             } else {
                 logger.warn("未找到大图 URL");
                 return null;
@@ -186,4 +176,47 @@ export default browser;
 // region 工具函数
 function getRandomInt(min: number, max: number) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * 传入需要等待的url前缀，当有该前缀的url返回了status === 200的response，则返回
+ * @param url 
+ */
+async function waitUrlPrefix(page:p_.Page,url:string) {
+    // Step 3: 等待图片请求响应
+    const logger = Data.baseData.getLogger()
+    logger.info(`等待请求响应，匹配 URL 前缀：${url}`);
+    await page.waitForResponse((response) => {
+        const urlMatches = response.url().startsWith(url);
+        const statusMatches = response.status() === 200;
+        // logger.info(`检测到响应: ${response.url()}, 状态码: ${response.status()}`);
+        return urlMatches && statusMatches;
+    });
+}
+
+async function downloadPixivImg(picUrl:string) {
+    const logger = Data.baseData.getLogger()
+    try {
+        const bigPicBuffer = await axios.get(picUrl, {
+            responseType: "arraybuffer",
+            headers: {
+                ...Data.baseData.getIpximgNetHeader(),
+                accept: "*/*",
+                referer: 'https://www.pixiv.net/',
+                origin: 'https://www.pixiv.net',
+            },
+        });
+        logger.info("图片下载成功");
+        return Buffer.from(bigPicBuffer.data)
+    } catch (axiosError) {
+        logger.error(`下载图片时发生错误: `);
+        logger.error(axiosError)
+        throw axiosError;
+    }
+}
+
+async function clickElementSafe(page:p_.Page,e:p_.ElementHandle) {
+    await page.bringToFront()
+    await e.focus()
+    await e.click()
 }
