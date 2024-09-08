@@ -1,7 +1,8 @@
 import browser from "./mainPage";
+import waitFunc from "./waitFunc";
 
 const chrome = {
-    browser
+    browser, waitFunc
 }
 
 export default chrome
