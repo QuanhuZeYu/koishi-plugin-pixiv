@@ -3,7 +3,7 @@ import fs from 'fs'
 import type * as p_ from 'puppeteer-core'
 
 import Data from "../Data/_index";
-import type { Context } from "koishi";
+import { sleep, type Context } from "koishi";
 import baseData from "../Data/baseData";
 import { resolve } from "path";
 
@@ -81,9 +81,10 @@ async function getRandomTJPic():Promise<Buffer[]> {
         // 寻找对应Element
         const imgElement = await page.$(`img[src="${imgURL}"]`);
         imgElement.click()
-        logger.info("等待 url 包含 master")
+        logger.info("等待网页跳转完成，并且等待选择器找到")
         try {
             await page.waitForNavigation()
+            await page.waitForSelector('main section figure img')
         } catch {
             logger.warn("等待超时，正在尝试跳过等待继续执行逻辑")
         }
@@ -201,9 +202,6 @@ async function freshPixiv(page: p_.Page) {
         page.goto('https://www.pixiv.net/')
     }
     await page.bringToFront()
-    await page.evaluate(() => {
-        // 刷新页面
-        location.reload();
-    });
-    await setTimeout(()=>{},1000)
+    await page.reload()
+    sleep(1000)
 }
