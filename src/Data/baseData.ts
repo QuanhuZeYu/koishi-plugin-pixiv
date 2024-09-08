@@ -1,7 +1,7 @@
 // 全局资源
 
 import type { Context, Logger } from "koishi"
-import type * as cjl  from "@cordisjs/logger"
+import * as cjl  from "@cordisjs/logger"
 import path from "path"
 import { Config } from ".."
 import p__ from 'koishi-plugin-puppeteer'

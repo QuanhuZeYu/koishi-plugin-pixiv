@@ -8,11 +8,13 @@ import { started } from "./preInit";
  */
 async function cycle(ctx:Context) {
     if(!started) {return}  // 第一次启动时不需要
-    const logger = Data.baseData.getLogger()
+    const logger = ctx.logger
     logger.info("正在尝试获取新的puppeteer")
     Data.baseData.initPuppeteer(ctx)
     logger.info(`正在寻找合适的页面`)
     await selectSuitablePage()
+    logger.info('重新获取logger')
+    Data.baseData.setLogger(logger)
 }
 
 export default cycle

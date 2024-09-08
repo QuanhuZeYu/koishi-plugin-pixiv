@@ -18,11 +18,15 @@ export const inject = {
 export interface Config { 
 	// excutePath: string,
 	ensureLogin: boolean
+	recommendSelector: object
 }
 
 export const Config: Schema<Config> = Schema.object({
 	// excutePath: Schema.string().description("puppeteer的chrome路径或者chromium路径").required(),
-	ensureLogin: Schema.boolean().description("请在确认登录过pixiv后再打开此开关!").default(false)
+	ensureLogin: Schema.boolean().description("请在确认登录过pixiv后再打开此开关!").default(false),
+	recommendSelector: Schema.object({
+		selector: Schema.string().description("推荐页面的图片选择器，编辑一段可以在浏览器运行的代码段，最后返回目标图片urls数组").default("._1EeYo"),
+	})
 });
 
 export function apply(ctx: Context) {

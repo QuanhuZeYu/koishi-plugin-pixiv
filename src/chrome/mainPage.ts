@@ -5,6 +5,7 @@ import type * as p_ from 'puppeteer-core'
 import Data from "../Data/_index";
 import type { Context } from "koishi";
 import baseData from "../Data/baseData";
+import { resolve } from "path";
 
 /**
  * 运行页面初始化
@@ -12,7 +13,7 @@ import baseData from "../Data/baseData";
  */
 async function pupterBrowserInit(ctx: Context) {
 	// [[4]]
-	const logger = Data.baseData.getLogger();
+	const logger = ctx.logger
 	if (ctx.config.ensureLogin === false) {
 		logger.warn("当前状态为未登录，将不会进行页面初始化");
 		return;
@@ -56,9 +57,11 @@ async function pupterBrowserInit(ctx: Context) {
 	baseData.setCurPage(myPage as any);
 }
 
-async function getRandomTJPic() {
+async function getRandomTJPic():Promise<Buffer[]> {
     const logger = Data.baseData.getLogger();
     const page = baseData.getCurPage();
+    await page.goto("https://www.pixiv.net/")  // 刷新一次网页
+    await page.waitForSelector('section img')
 
     try {
         // Step 1: 查找显示为 '推荐作品' 的块
@@ -73,86 +76,54 @@ async function getRandomTJPic() {
                 section.textContent.includes("推荐作品")
             );
             // 合法性检查
-            if (tuijianSections?.length < 1) {
-                return [];
+            if (tuijianSections?.length < 1 || tuijianSections?.length > 1) {
+                console.log('未找到推荐作品')
             }
             // 寻找所有推荐块下所有li元素
-            const listItems = Array.from(tuijianSections[0].querySelectorAll("li"));
-            const imgSrcs = [];
+            const listItems = Array.from(tuijianSections[0].querySelectorAll("li"))
+            const imgEs = [];
             // 从每个li下寻找找到的第一个img
             listItems.forEach((li) => {
                 const img = li.querySelector("img");
-                if (img) {
-                    imgSrcs.push(img.src);
-                }
-            });
-            // 合法性检查
-            if(imgSrcs.length < 3) {
-                logger.info(`img 块总数小于3，可能不在<img>中，尝试<a>`)
-            }
-            // 寻找每个li下第一个a元素
-            listItems.forEach((li) => {
-                const a = li.querySelector("a");
-                if (a) {
-                    imgSrcs.push(a.href);
+                const src = img?.src
+                if(src) {
+                    if(src.includes('i.pximg.net')) {
+                        imgEs.push(img.src)
+                    }
                 }
             });
 
-            return imgSrcs;
+            return imgEs;
         });
         // 合法性检查
         if (!imgSelector || imgSelector.length === 0) {
             logger.warn('未找到 "推荐作品" 块或其中的图片！');
-            await page.goto("https://www.pixiv.net/");
             return null;
         }
         // 随机选择
         const randomIndex = getRandomInt(0, imgSelector.length - 1);
-        const imgUrl = imgSelector[randomIndex];  // 选择到的图片链接
-        logger.info(`随机选择的第${randomIndex}张图片: ${imgUrl}`);
-
-        // Step 2: 查找并点击图片
-        const imageHandle = await page.$(`img[src="${imgUrl}"]`)
-        if (imageHandle) {
-            logger.info("准备点击图片元素");
-            await clickElementSafe(page,imageHandle)
-
-            // Step 3: 等待图片请求响应
-            const urlPrefix = "https://www.pixiv.net/ajax/user/";
-            await waitUrlPrefix(page, urlPrefix)
-            logger.info("请求响应成功，开始查找大图 URL");
-            // 获取原始图像 url 浏览器 JS 代码
-            const bigPicURL = await page.evaluate(() => {
-                // 查找 main 块 -> 寻找 main 下的 img 元素
-                const main = document.querySelector("main");
-                if (!main) {
-                    console.warn("未找到 <main> 元素");
-                    return null;
-                }
-
-                const img = main.querySelector("img");
-                if (!img) {
-                    console.warn("未找到 <img> 元素");
-                    return null;
-                }
-
-                return img.src;
-            });
-
-            if (bigPicURL) {
-                logger.info(`大图 URL 获取成功: ${bigPicURL}`);
-                // Step 4: 下载图片
-                const picBuffer = await downloadPixivImg(bigPicURL)
-                return picBuffer
-            } else {
-                logger.warn("未找到大图 URL");
-                return null;
-            }
-        } else {
-            logger.warn("无法找到要点击的图片元素");
-            await page.goto("https://www.pixiv.net/");
-            return null;
+        const imgURL:string = imgSelector[randomIndex];  // 选择到的图片链接
+        logger.info(`随机选择的第${randomIndex}张图片: ${imgURL}`);
+        await page.bringToFront()
+        // 寻找对应Element
+        const imgElement = await page.$(`img[src="${imgURL}"]`);
+        imgElement.click()
+        await page.waitForNavigation()
+        const urlPrefix = "https://www.pixiv.net/ajax/user/";
+        await waitUrlPrefix(page, urlPrefix)
+        // 从浏览器中将图像复制出来 (还未找到合适的方法)
+        const bigPicURLs = await page.evaluate(() => {
+            const imgElements:HTMLImageElement[] = Array.from(document.querySelector('main section figure').querySelectorAll('img'))
+            const urls = imgElements.map(img => img.src)
+            return urls
+        })
+        logger.info(`从浏览器中获取到的图片链接: ${bigPicURLs}`)
+        const pics:Buffer[] = []
+        for(const url of bigPicURLs) {
+            const pic = await downloadPixivImg(url)
+            pics.push(pic)
         }
+        return pics
     } catch (error) {
         logger.error(`发生错误: ${error}`);
         throw error;
