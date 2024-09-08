@@ -11,7 +11,6 @@ async function randomTJPic(av:Argv,ms:string) {
         const picBuffers = await chrome.browser.getRandomTJPic()
         for(const [index, pic] of picBuffers.entries()) {
             await ss.send(h.image(pic, 'image/png'))
-            fs.writeFileSync(`${Data.baseData.getMyPluginDataDir()}${index}.png`, pic)
         }
     } catch (e) {
         logger.warn(`获取失败，失败信息: ${e}`)
