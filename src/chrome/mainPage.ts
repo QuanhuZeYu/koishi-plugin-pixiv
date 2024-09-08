@@ -60,8 +60,6 @@ async function pupterBrowserInit(ctx: Context) {
 async function getRandomTJPic():Promise<Buffer[]> {
     const logger = Data.baseData.getLogger();
     const page = baseData.getCurPage();
-    await freshPixiv(page)
-    
 
     try {
         // Step 1: 查找显示为 '推荐作品' 的块
@@ -100,8 +98,9 @@ async function getRandomTJPic():Promise<Buffer[]> {
         }
         return pics
     } catch (error) {
-        logger.error(`发生错误: ${error}`);
-        throw error;
+        await freshPixiv(page)
+        logger.error(`发生错误: ${error}，开始重试`);
+        return await getRandomTJPic()
     } finally {
         logger.info("正在返回主页");
         await page.goto("https://www.pixiv.net/");
@@ -211,5 +210,7 @@ async function freshPixiv(page: p_.Page) {
     } catch (error) {
         console.error('等待超时');
         freshPixiv(page)
+    } finally {
+        return
     }
 }
