@@ -205,12 +205,5 @@ async function freshPixiv(page: p_.Page) {
         // 刷新页面
         location.reload();
     });
-    try {
-        await page.waitForSelector('section ul li a img')
-    } catch (error) {
-        console.error('等待超时');
-        freshPixiv(page)
-    } finally {
-        return
-    }
+    await setTimeout(()=>{},1000)
 }
