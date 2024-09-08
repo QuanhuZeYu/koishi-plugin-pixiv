@@ -29,6 +29,7 @@ async function pupterBrowserInit(ctx: Context) {
     }
     if(!myPage) {
         myPage = await puppeteer.browser.newPage() as any
+        await myPage.goto('https://www.pixiv.net/')
     }
     await myPage.bringToFront()  // 设置为活动页
 	await myPage.goto("https://www.pixiv.net/");
@@ -99,13 +100,10 @@ async function getRandomTJPic():Promise<Buffer[]> {
         }
         return pics
     } catch (error) {
-        await freshPixiv(page)
-        logger.error(`发生错误: ${error}，开始重试`);
-        return await getRandomTJPic()
+        logger.error(`发生错误: ${error}`);
     } finally {
         logger.info("正在返回主页");
-        await page.goBack()
-        await freshPixiv(page)
+        await page.goto("https://www.pixiv.net/")
         Data.baseData.setCurPage(page)
     }
 }
