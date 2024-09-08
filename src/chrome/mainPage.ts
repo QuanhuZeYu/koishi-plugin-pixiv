@@ -81,6 +81,7 @@ async function getRandomTJPic():Promise<Buffer[]> {
         await page.bringToFront()
         // 寻找对应Element
         const imgElement = await page.$(`img[src="${imgURL}"]`);
+        await page.bringToFront()
         imgElement.click()
         logger.info("等待网页跳转完成，并且等待选择器找到")
         try {
