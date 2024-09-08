@@ -201,6 +201,7 @@ async function freshPixiv(page: p_.Page) {
     if(!page.url().includes('pixiv.net')) {
         page.goto('https://www.pixiv.net/')
     }
+    await page.bringToFront()
     await page.evaluate(() => {
         // 刷新页面
         location.reload();
