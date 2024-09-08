@@ -103,8 +103,8 @@ async function getRandomTJPic():Promise<Buffer[]> {
         return await getRandomTJPic()
     } finally {
         logger.info("正在返回主页");
-        await page.goto("https://www.pixiv.net/");
-        logger.info("已返回主页");
+        await page.goBack()
+        await freshPixiv(page)
         Data.baseData.setCurPage(page)
     }
 }
