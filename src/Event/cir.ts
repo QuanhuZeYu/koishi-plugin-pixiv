@@ -4,10 +4,13 @@ import { started } from "./preInit";
 
 /**
  * 可被反复触发的事件 服务修改时->尝试获取新的puppeteer
+ * 修改的全局资源: ctx, puppeteer, page, logger
  * @param ctx 
  */
 async function cycle(ctx:Context) {
     if(!started) {return}  // 第一次启动时不需要
+    // 设置ctx
+    Data.baseData.setCTX(ctx)
     const logger = ctx.logger
     logger.info("正在尝试获取新的puppeteer")
     Data.baseData.initPuppeteer(ctx)
@@ -30,6 +33,7 @@ async function selectSuitablePage() {
     for(const page of pages) {
         if(page.url() === 'about:blank' || page.url().includes('pixiv.net')) {
             myPage = page
+            myPage.goto('https://www.pixiv.net/')
         }
     }
     if(myPage === undefined) {
