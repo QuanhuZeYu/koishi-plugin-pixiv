@@ -6,6 +6,7 @@ import Data from "../Data/_index";
 import { sleep, type Context } from "koishi";
 import baseData from "../Data/baseData";
 import { resolve } from "path";
+import chrome from "./_index";
 
 /**
  * 运行页面初始化
@@ -58,54 +59,73 @@ async function pupterBrowserInit(ctx: Context) {
 	baseData.setCurPage(myPage as any);
 }
 
-async function getRandomTJPic():Promise<Buffer[]> {
+async function getRandomTJPic(): Promise<Buffer[]> {
     const logger = Data.baseData.getLogger();
     const page = baseData.getCurPage();
 
     try {
         // Step 1: 查找显示为 '推荐作品' 的块
         logger.info("正在查找推荐作品");
-        await page.bringToFront()  // 设置为活动页
+        await page.bringToFront();  // 设置为活动页
+
         // 浏览器 JS 代码
         // 查找推荐块逻辑+推荐块中放作品的图片元素 -> 返回图片列表url
-        const imgSelector:string[] = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.推荐作品选择器);
+        const imgSelector: string[] = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.推荐作品URLs选择器);
+        
         // 合法性检查
         if (!imgSelector || imgSelector.length === 0) {
             logger.warn('未找到 "推荐作品" 块或其中的图片！');
-            return null;
+            return [];  // 返回一个空的 Buffer 数组而不是 null
         }
+
         // 随机选择
         const randomIndex = getRandomInt(0, imgSelector.length - 1);
-        const imgURL:string = imgSelector[randomIndex];  // 选择到的图片链接
+        const imgURL: string = imgSelector[randomIndex];  // 选择到的图片链接
         logger.info(`随机选择的第${randomIndex}张图片: ${imgURL}`);
-        await page.bringToFront()
-        // 寻找对应Element
+
+        // 寻找对应 Element 并点击
         const imgElement = await page.$(`img[src="${imgURL}"]`);
-        await page.bringToFront()
-        imgElement.click()
-        logger.info("等待网页跳转完成，并且等待选择器找到")
+        if (!imgElement) {
+            logger.warn("未找到对应的图片元素");
+            return [];
+        }
+        
+        await imgElement.click();
+        logger.info("等待网页跳转完成，并且等待选择器找到");
+
         try {
-            await page.waitForNavigation()
-            await page.waitForSelector('main section figure img')
-        } catch {
-            logger.warn("等待超时，正在尝试跳过等待继续执行逻辑")
+            await chrome.waitFunc.waitNav(page)
+            logger.info(`等待网页跳转完成: ${Data.baseData.getCTX().config.等待NAV超时时间}ms`);
+            await page.waitForSelector('main section figure img');
+            logger.info("选择器找到，开始解析图片URL");
+        } catch (error) {
+            logger.warn(`等待超时，尝试跳过等待继续执行逻辑: ${error}`);
         }
-        logger.info("等待图片已加载完成")
-        // 从浏览器中将图像复制出来 (还未找到合适的方法) 当前: 选择器查找选取url直接下载
-        const bigPicURLs:string[] = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像URLs选择器)
-        logger.info(`从浏览器中获取到的图片链接: ${bigPicURLs}`)
-        const pics:Buffer[] = []
-        for(const url of bigPicURLs) {
-            const pic = await downloadPixivImg(url)
-            pics.push(pic)
+
+        logger.info("等待图片已加载完成");
+
+        // 从浏览器中将图像复制出来
+        const bigPicURLs: string[] = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像URLs选择器);
+        logger.info(`从浏览器中获取到的图片链接: ${bigPicURLs}`);
+
+        const pics: Buffer[] = [];
+        for (const url of bigPicURLs) {
+            try {
+                const pic = await downloadPixivImg(url);
+                pics.push(pic);
+            } catch (error) {
+                logger.warn(`下载图片失败: ${url}, 错误: ${error}`);
+            }
         }
-        return pics
+
+        return pics;
     } catch (error) {
         logger.error(`发生错误: ${error}`);
+        return [];  // 在 catch 块中明确返回空数组
     } finally {
         logger.info("正在返回主页");
-        await page.goto("https://www.pixiv.net/")
-        Data.baseData.setCurPage(page)
+        await page.goto("https://www.pixiv.net/");
+        Data.baseData.setCurPage(page);
     }
 }
 
