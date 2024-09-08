@@ -83,11 +83,15 @@ async function getRandomTJPic():Promise<Buffer[]> {
         // 寻找对应Element
         const imgElement = await page.$(`img[src="${imgURL}"]`);
         imgElement.click()
-        await page.waitForNavigation()
-        const urlPrefix = "https://www.pixiv.net/ajax/user/";
-        await waitUrlPrefix(page, urlPrefix)
+        logger.info("等待 url 包含 master")
+        try {
+            await page.waitForNavigation()
+        } catch {
+            logger.warn("等待超时，正在尝试跳过等待继续执行逻辑")
+        }
+        logger.info("等待图片已加载完成")
         // 从浏览器中将图像复制出来 (还未找到合适的方法) 当前: 选择器查找选取url直接下载
-        const bigPicURLs = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像URLs选择器)
+        const bigPicURLs:string[] = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像URLs选择器)
         logger.info(`从浏览器中获取到的图片链接: ${bigPicURLs}`)
         const pics:Buffer[] = []
         for(const url of bigPicURLs) {
@@ -123,15 +127,30 @@ function getRandomInt(min: number, max: number) {
  * @param url 
  */
 async function waitUrlPrefix(page:p_.Page,url:string) {
-    // Step 3: 等待图片请求响应
-    const logger = Data.baseData.getLogger()
-    logger.info(`等待请求响应，匹配 URL 前缀：${url}`);
     await page.waitForResponse((response) => {
         const urlMatches = response.url().startsWith(url);
         const statusMatches = response.status() === 200;
         // logger.info(`检测到响应: ${response.url()}, 状态码: ${response.status()}`);
         return urlMatches && statusMatches;
     });
+}
+
+async function waitUrlEndWith(page:p_.Page,str:string) {
+    await page.waitForResponse((response) => {
+        const urlMatches = response.url().endsWith(str);
+        const statusMatches = response.status() === 200;
+        // logger.info(`检测到响应: ${response.url()}, 状态码: ${response.status()}`);
+        return urlMatches && statusMatches;
+    });
+}
+
+async function waitUrlInclude(page:p_.Page, str:string) {
+    await page.waitForResponse((response) => {
+        const urlMatches = response.url().includes(str);
+        const statusMatches = response.status() === 200;
+        // logger.info(`检测到响应: ${response.url()}, 状态码: ${response.status()}`);
+        return urlMatches && statusMatches;
+   });
 }
 
 async function downloadPixivImg(picUrl:string) {
