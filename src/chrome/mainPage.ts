@@ -69,32 +69,7 @@ async function getRandomTJPic():Promise<Buffer[]> {
         await page.bringToFront()  // 设置为活动页
         // 浏览器 JS 代码
         // 查找推荐块逻辑+推荐块中放作品的图片元素 -> 返回图片列表url
-        const imgSelector = await page.evaluate(() => {
-            // 寻找推荐作品块
-            const sections = Array.from(document.querySelectorAll("section"));
-            const tuijianSections = sections.filter((section) =>
-                section.textContent.includes("推荐作品")
-            );
-            // 合法性检查
-            if (tuijianSections?.length < 1 || tuijianSections?.length > 1) {
-                console.log('未找到推荐作品')
-            }
-            // 寻找所有推荐块下所有li元素
-            const listItems = Array.from(tuijianSections[0].querySelectorAll("li"))
-            const imgEs = [];
-            // 从每个li下寻找找到的第一个img
-            listItems.forEach((li) => {
-                const img = li.querySelector("img");
-                const src = img?.src
-                if(src) {
-                    if(src.includes('i.pximg.net')) {
-                        imgEs.push(img.src)
-                    }
-                }
-            });
-
-            return imgEs;
-        });
+        const imgSelector:string[] = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.推荐作品选择器);
         // 合法性检查
         if (!imgSelector || imgSelector.length === 0) {
             logger.warn('未找到 "推荐作品" 块或其中的图片！');
@@ -111,12 +86,8 @@ async function getRandomTJPic():Promise<Buffer[]> {
         await page.waitForNavigation()
         const urlPrefix = "https://www.pixiv.net/ajax/user/";
         await waitUrlPrefix(page, urlPrefix)
-        // 从浏览器中将图像复制出来 (还未找到合适的方法)
-        const bigPicURLs = await page.evaluate(() => {
-            const imgElements:HTMLImageElement[] = Array.from(document.querySelector('main section figure').querySelectorAll('img'))
-            const urls = imgElements.map(img => img.src)
-            return urls
-        })
+        // 从浏览器中将图像复制出来 (还未找到合适的方法) 当前: 选择器查找选取url直接下载
+        const bigPicURLs = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像URLs选择器)
         logger.info(`从浏览器中获取到的图片链接: ${bigPicURLs}`)
         const pics:Buffer[] = []
         for(const url of bigPicURLs) {
