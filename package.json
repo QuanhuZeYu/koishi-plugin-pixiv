@@ -1,7 +1,7 @@
 {
   "name": "@quanhuzeyu/koishi-plugin-pixiv",
   "description": "指令:随机涩图，无需获取cookies等复杂操作，获取账号下的每日推荐",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "homepage": "https://github.com/QuanhuZeYu/koishi-plugin-pixiv.git",
