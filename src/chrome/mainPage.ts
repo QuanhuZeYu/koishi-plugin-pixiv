@@ -59,7 +59,7 @@ async function pupterBrowserInit(ctx: Context) {
 	baseData.setCurPage(myPage as any);
 }
 
-async function getRandomTJPic(): Promise<Buffer[]> {
+async function getRandomTJPic(): Promise<[Buffer[],string]> {
     const logger = Data.baseData.getLogger();
     const page = baseData.getCurPage();
 
@@ -75,7 +75,7 @@ async function getRandomTJPic(): Promise<Buffer[]> {
         // 合法性检查
         if (!imgSelector || imgSelector.length === 0) {
             logger.warn('未找到 "推荐作品" 块或其中的图片！');
-            return [];  // 返回一个空的 Buffer 数组而不是 null
+            return [[],'未找到推荐作品'];  // 返回一个空的 Buffer 数组而不是 null
         }
 
         // 随机选择
@@ -87,7 +87,7 @@ async function getRandomTJPic(): Promise<Buffer[]> {
         const imgElement = await page.$(`img[src="${imgURL}"]`);
         if (!imgElement) {
             logger.warn("未找到对应的图片元素");
-            return [];
+            return [[],'未找到对应的图片元素'];
         }
         try {await imgElement.click();} catch (e) {logger.warn('打开作品时发生错误:',e)}
         logger.info("等待网页跳转完成，并且等待选择器找到");
@@ -99,6 +99,7 @@ async function getRandomTJPic(): Promise<Buffer[]> {
         } catch (error) {logger.warn(`等待超时，尝试跳过等待继续执行逻辑: ${error}`);}
         
         logger.info("等待图片加载已结束");
+        const artInfo = await chrome.pageController.getArtWorkInfo(page)
 
         // 从浏览器中获取大图URL 先查看有没有查看全部div，有则先点击它
         try {
@@ -117,10 +118,10 @@ async function getRandomTJPic(): Promise<Buffer[]> {
             }
         }
 
-        return pics;
+        return [pics, artInfo];
     } catch (error) {
         logger.error(`发生错误: ${error}`);
-        return [];  // 在 catch 块中明确返回空数组
+        return [[],error];  // 在 catch 块中明确返回空数组
     } finally {
         logger.info("正在返回主页");
         await page.goto("https://www.pixiv.net/");
