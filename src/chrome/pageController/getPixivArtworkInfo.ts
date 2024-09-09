@@ -13,6 +13,7 @@ async function getArtWorkInfo(p: p_.Page): Promise<string> {
         try {
             const authorSection = document.querySelector('main')?.nextElementSibling?.querySelector('section');
             const authorName = authorSection?.querySelectorAll('a')[1]?.textContent?.trim() || '未知';
+            const authorNumber = authorSection?.querySelectorAll('a')[1]?.getAttribute('href')
 
             const infoSection = document.querySelector('section figcaption');
             if (!infoSection) throw new Error('无法找到作品信息区域');
@@ -46,9 +47,9 @@ async function getArtWorkInfo(p: p_.Page): Promise<string> {
                 const title1Section = title0Section.nextElementSibling;
                 const title0 = title0Section.textContent?.trim() || '无';
                 const title1 = title1Section?.textContent?.trim() || '无';
-                return `作品名称: ${title0}\n作者: ${authorName}\n副标题: ${title1}\ntags: ${tagString.join(' ')}\n喜欢数: ${likeCount}\n收藏数: ${collectionCount}\n浏览数: ${viewCount}\n时间: ${time}`;
+                return `作品名称: ${title0}\n作者: ${authorName} 作者ID:${authorNumber}\n副标题: ${title1}\ntags: ${tagString.join(' ')}\n喜欢数: ${likeCount}\n收藏数: ${collectionCount}\n浏览数: ${viewCount}\n时间: ${time}`;
             } else {
-                return `作品名称: 无\n作者: ${authorName}\n副标题: 无\ntags: ${tagString.join(' ')}\n喜欢数: ${likeCount}\n收藏数: ${collectionCount}\n浏览数: ${viewCount}\n时间: ${time}`;
+                return `作品名称: 无\n作者: ${authorName} 作者ID: ${authorNumber}\n副标题: 无\ntags: ${tagString.join(' ')}\n喜欢数: ${likeCount}\n收藏数: ${collectionCount}\n浏览数: ${viewCount}\n时间: ${time}`;
             }
         } catch (error) {
             console.error('Error fetching artwork info:', error);
