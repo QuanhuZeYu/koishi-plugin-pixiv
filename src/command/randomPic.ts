@@ -11,12 +11,13 @@ async function randomTJPic(av:Argv,ms:string) {
     const ss = av.session
     logger.info("正在随机获取图片")
     try {
-        const picBuffers = await chrome.browser.getRandomTJPic()
+        const [picBuffers, artInfo] = await chrome.browser.getRandomTJPic()
         logger.info(`图片获取成功: 数量${picBuffers?.length}`)
         const message = []
         for(const  pic of picBuffers) {
             ss.send(h.image(pic, 'image/png'))
         }
+        ss.send(artInfo)
     } catch (e) {
         logger.warn(`获取失败，失败信息: ${e}`)
         ss.send("获取失败，请联系管理员查看控制台")
