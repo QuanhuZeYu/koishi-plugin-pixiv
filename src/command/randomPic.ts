@@ -15,9 +15,9 @@ async function randomTJPic(av:Argv,ms:string) {
         logger.info(`图片获取成功: 数量${picBuffers?.length}`)
         const message = []
         for(const  pic of picBuffers) {
-            ss.send(h.image(pic, 'image/png'))
+            await ss.send(h.image(pic, 'image/png'))
         }
-        ss.send(artInfo)
+        await ss.send(artInfo)
     } catch (e) {
         logger.warn(`获取失败，失败信息: ${e}`)
         ss.send("获取失败，请联系管理员查看控制台")
