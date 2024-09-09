@@ -7,6 +7,7 @@ import commands from "./command/_index";
 export const name = "pixiv";
 export const usage = '\
 第一次使用本插件时请在puppeteer服务中设置args: `--user-data-dir=/path/to/custom-profile-dir` 否则无法记录登录信息\n\n\
+本插件没有使用反代站点，直接操作pixiv网站，所以需要能访问国外网络，在puppeteer服务中添加args `--proxy-server=127.0.0.1:<端口>`\n\n\
 且强烈推荐关闭无头模式，因为插件可能会打开很多页面，如果你开了无头模式可能会不知不觉吃掉很多内存和性能，关掉无头随时查看浏览器\n\n\
 使用 `随机涩图` 即可随机获取一张p站推荐作品中的图片~~~'
 export const inject = {
