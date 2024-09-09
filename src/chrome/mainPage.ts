@@ -89,9 +89,8 @@ async function getRandomTJPic(): Promise<Buffer[]> {
             logger.warn("未找到对应的图片元素");
             return [];
         }
-        try {await imgElement.click();} catch (e) {logger.warn('展开全部时发生错误:',e)} finally {logger.info('展开全部逻辑已执行完毕')}
+        
         logger.info("等待网页跳转完成，并且等待选择器找到");
-
         try {
             await chrome.waitFunc.waitNav(page)
             logger.info(`等待网页跳转完成: ${Data.baseData.getCTX().config.等待NAV超时时间}ms`);
@@ -100,7 +99,7 @@ async function getRandomTJPic(): Promise<Buffer[]> {
         } catch (error) {
             logger.warn(`等待超时，尝试跳过等待继续执行逻辑: ${error}`);
         }
-
+        try {await imgElement.click();} catch (e) {logger.warn('展开全部时发生错误:',e)} finally {logger.info('展开全部逻辑已执行完毕')}
         logger.info("等待图片加载已结束");
 
         // 从浏览器中获取大图URL 先查看有没有查看全部div，有则先点击它

@@ -12,8 +12,9 @@ async function randomTJPic(av:Argv,ms:string) {
     logger.info("正在随机获取图片")
     try {
         const picBuffers = await chrome.browser.getRandomTJPic()
+        logger.info(`图片获取成功: 数量${picBuffers?.length}`)
         const message = []
-        for(const [index, pic] of picBuffers.entries()) {
+        for(const  pic of picBuffers) {
             ss.send(h.image(pic, 'image/png'))
         }
     } catch (e) {
