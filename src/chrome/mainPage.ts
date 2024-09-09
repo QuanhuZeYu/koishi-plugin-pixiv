@@ -36,7 +36,7 @@ async function pupterBrowserInit(ctx: Context) {
 	await myPage.goto("https://www.pixiv.net/");
 	// 启用请求拦截功能
 	await myPage.setRequestInterception(true);
-	myPage.on("request", async (request) => {
+	myPage.on("request", (request) => {
 		const domain = new URL(request.url()).hostname; // 获取url的域名
 		if (domain === "www.pixiv.net") {
 			let header = Data.baseData.getPixivNetHeader() || {};
@@ -56,7 +56,7 @@ async function pupterBrowserInit(ctx: Context) {
 		request.continue();
 	});
 	// 拦截逻辑定义完成
-	baseData.setCurPage(myPage as any);
+	baseData.setCurPage(myPage);
 }
 
 async function getRandomTJPic(): Promise<[Buffer[],string]> {
