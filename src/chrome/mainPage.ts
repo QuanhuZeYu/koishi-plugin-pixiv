@@ -89,21 +89,21 @@ async function getRandomTJPic(): Promise<Buffer[]> {
             logger.warn("未找到对应的图片元素");
             return [];
         }
-        
+        try {await imgElement.click();} catch (e) {logger.warn('打开作品时发生错误:',e)}
         logger.info("等待网页跳转完成，并且等待选择器找到");
         try {
             await chrome.waitFunc.waitNav(page)
             logger.info(`等待网页跳转完成: ${Data.baseData.getCTX().config.等待NAV超时时间}ms`);
             await page.waitForSelector('main section figure img');
             logger.info("选择器找到，开始解析图片URL");
-        } catch (error) {
-            logger.warn(`等待超时，尝试跳过等待继续执行逻辑: ${error}`);
-        }
-        try {await imgElement.click();} catch (e) {logger.warn('展开全部时发生错误:',e)} finally {logger.info('展开全部逻辑已执行完毕')}
+        } catch (error) {logger.warn(`等待超时，尝试跳过等待继续执行逻辑: ${error}`);}
+        
         logger.info("等待图片加载已结束");
 
         // 从浏览器中获取大图URL 先查看有没有查看全部div，有则先点击它
-        await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像查看全部按钮选择点击)
+        try {
+            await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像查看全部按钮选择点击)
+        } catch (error) {logger.warn(`没有找到查看全部按钮，继续执行逻辑: ${error}`);}
         const bigPicURLs: string[] = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像URLs选择器);
         logger.info(`从浏览器中获取到的图片链接: ${bigPicURLs}`);
 
