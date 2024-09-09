@@ -89,8 +89,7 @@ async function getRandomTJPic(): Promise<Buffer[]> {
             logger.warn("未找到对应的图片元素");
             return [];
         }
-        
-        await imgElement.click();
+        try {await imgElement.click();} catch (e) {logger.warn('展开全部时发生错误:',e)} finally {logger.info('展开全部逻辑已执行完毕')}
         logger.info("等待网页跳转完成，并且等待选择器找到");
 
         try {
@@ -102,9 +101,10 @@ async function getRandomTJPic(): Promise<Buffer[]> {
             logger.warn(`等待超时，尝试跳过等待继续执行逻辑: ${error}`);
         }
 
-        logger.info("等待图片已加载完成");
+        logger.info("等待图片加载已结束");
 
-        // 从浏览器中将图像复制出来
+        // 从浏览器中获取大图URL 先查看有没有查看全部div，有则先点击它
+        await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像查看全部按钮选择点击)
         const bigPicURLs: string[] = await page.evaluate(Data.baseData.getCTX().config.HTMLSelector.主图像URLs选择器);
         logger.info(`从浏览器中获取到的图片链接: ${bigPicURLs}`);
 
@@ -224,3 +224,5 @@ async function freshPixiv(page: p_.Page) {
     await page.reload()
     sleep(1000)
 }
+
+//#endregion
