@@ -1,18 +1,31 @@
 {
-  "name": "koishi-plugin-qz-dev",
-  "description": "测试开发",
-  "version": "0.0.1",
+  "name": "@quanhuzeyu/koishi-plugin-pixiv",
+  "description": "指令:随机涩图，无需获取cookies等复杂操作，获取账号下的每日推荐",
+  "version": "0.3.0",
   "main": "src/index.js",
   "typings": "lib/index.d.ts",
+  "homepage": "https://github.com/QuanhuZeYu/koishi-plugin-pixiv.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QuanhuZeYu/koishi-plugin-pixiv.git"
+  },
   "files": [
     "src"
   ],
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "build": "node build.js",
+    "clean": "node clean.js",
+    "allpub": "npm run pubgit && npm run pubnpm",
+    "pubgit": "npm publish --registry=https://npm.pkg.github.com --access=public",
+    "pubnpm": "npm publish --registry=https://registry.npmjs.org --access=public"
+  },
   "keywords": [
     "chatbot",
     "koishi",
-    "plugin"
+    "plugin",
+    "pixiv",
+    "setu"
   ],
   "devDependencies": {},
   "peerDependencies": {
